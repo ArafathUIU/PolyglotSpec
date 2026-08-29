@@ -23,17 +23,32 @@ export default function DiffAnalyzer() {
       const consumer = JSON.parse(consumerSchema);
       const provider = JSON.parse(providerSchema);
 
-      // Extract first model from each
-      const cModelKey = Object.keys(consumer)[0];
-      const pModelKey = Object.keys(provider)[0];
+      const extractFields = (schema) => {
+        if (!schema || typeof schema !== 'object') return {};
+        const keys = Object.keys(schema);
+        if (keys.length === 0) return {};
 
-      if (!cModelKey || !pModelKey) {
-        setDiffResults([]);
-        return;
-      }
+        const firstKey = keys[0];
+        const val = schema[firstKey];
 
-      const cFields = consumer[cModelKey].fields || {};
-      const pFields = provider[pModelKey].fields || {};
+        // Wrapped schema structure: { "Model": { "fields": { ... } } }
+        if (val && typeof val === 'object' && val.fields) {
+          return val.fields;
+        }
+
+        // Flat schema structure: { "field1": { "type": "string" } }
+        const isFlat = Object.values(schema).some(
+          v => v && typeof v === 'object' && 'type' in v
+        );
+        if (isFlat) {
+          return schema;
+        }
+
+        return {};
+      };
+
+      const cFields = extractFields(consumer);
+      const pFields = extractFields(provider);
 
       const mismatches = [];
 
