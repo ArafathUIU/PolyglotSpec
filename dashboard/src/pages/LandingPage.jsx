@@ -128,6 +128,25 @@ export default function LandingPage({ onEnterConsole }) {
     }
   ];
 
+  const faqs = [
+    {
+      q: "Why was PolyglotSpec built?",
+      a: "In modern polyglot microservice architectures, request validation contracts are duplicated across languages (e.g. Laravel requests vs. Python FastAPI models). When field constraints or nullability limits shift, pipelines break silently. PolyglotSpec statically parses validation files into uniform contracts and compares them to prevent contract drifts before deployment."
+    },
+    {
+      q: "Does this require running my application or API?",
+      a: "No. PolyglotSpec parses abstract syntax trees (ASTs) to scan validations statically. It reads Laravel Request files, FastAPI Pydantic files, and TypeScript Zod files directly without executing code, spinning up databases, or sending requests."
+    },
+    {
+      q: "How does this compare to OpenAPI (Swagger)?",
+      a: "OpenAPI maps schema fields and paths but rarely documents precise validation boundaries (like minimum numbers, maximum lengths, or nullable behaviors) in a language-agnostic way. PolyglotSpec focuses on semantic boundary differences between consumer inputs and provider validators."
+    },
+    {
+      q: "Can I run dynamic boundary tests against API endpoints?",
+      a: "Yes. PolyglotSpec includes a dynamic adversarial fuzzer which translates contract constraints into type mutation, null-byte injection, and size underflow payloads to pressure test active server ports directly from your shell or browser sandbox."
+    }
+  ];
+
   return (
     <div className="landing-container">
       {/* HTML5 Canvas Background for Golden Silk Flow Animation */}
@@ -222,6 +241,19 @@ export default function LandingPage({ onEnterConsole }) {
               The dashboard calculates diff drifts and streams sandboxed network checks directly from your browser, adhering strictly to CORS safety guidelines with zero remote storage.
             </p>
           </div>
+        </div>
+      </section>
+
+      {/* FAQ Section */}
+      <section className="section-container">
+        <h2 className="section-title text-center">Frequently Asked Questions</h2>
+        <div className="faq-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px', marginTop: '40px' }}>
+          {faqs.map((faq, idx) => (
+            <div key={idx} className="faq-card glass-panel" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <h3 className="faq-question" style={{ fontSize: '1.05rem', fontWeight: '700', color: 'var(--text-primary)' }}>{faq.q}</h3>
+              <p className="faq-answer" style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', lineHeight: '1.6' }}>{faq.a}</p>
+            </div>
+          ))}
         </div>
       </section>
 
