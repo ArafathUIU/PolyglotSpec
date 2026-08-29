@@ -3,14 +3,78 @@ import './LandingPage.css';
 
 export default function LandingPage({ onEnterConsole }) {
   const [mousePos, setMousePos] = React.useState({ x: -1000, y: -1000 });
+  const canvasRef = React.useRef(null);
 
   React.useEffect(() => {
     const handleMouseMove = (e) => {
       setMousePos({ x: e.clientX, y: e.clientY });
     };
     window.addEventListener('mousemove', handleMouseMove);
+
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let animationFrameId;
+    let time = 0;
+
+    const resizeCanvas = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    const numStrands = 75;
+    const strands = Array.from({ length: numStrands }).map((_, i) => {
+      const baseX = (window.innerWidth / numStrands) * i;
+      return {
+        baseX,
+        amplitude: 35 + Math.random() * 85,
+        frequency: 0.001 + Math.random() * 0.0018,
+        speed: 0.005 + Math.random() * 0.007,
+        phase: Math.random() * Math.PI * 2,
+        alpha: 0.03 + Math.random() * 0.16,
+        width: 0.4 + Math.random() * 1.0,
+      };
+    });
+
+    const render = () => {
+      time += 1;
+      ctx.fillStyle = 'rgba(11, 15, 23, 0.15)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      strands.forEach((s) => {
+        ctx.beginPath();
+        ctx.lineWidth = s.width;
+        ctx.strokeStyle = `rgba(236, 208, 120, ${s.alpha})`;
+
+        const steps = 35;
+        const stepSize = canvas.height / steps;
+
+        for (let y = 0; y <= canvas.height; y += stepSize) {
+          const wave1 = Math.sin(y * s.frequency + time * s.speed + s.phase) * s.amplitude;
+          const wave2 = Math.cos(y * (s.frequency * 0.5) - time * (s.speed * 0.5) + s.phase) * (s.amplitude * 0.4);
+          const groupFlow = Math.sin(y * 0.0006 + time * 0.0012) * 150;
+          const x = s.baseX + wave1 + wave2 + groupFlow;
+
+          if (y === 0) {
+            ctx.moveTo(x, y);
+          } else {
+            ctx.lineTo(x, y);
+          }
+        }
+        ctx.stroke();
+      });
+
+      animationFrameId = requestAnimationFrame(render);
+    };
+
+    render();
+
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('resize', resizeCanvas);
+      cancelAnimationFrame(animationFrameId);
     };
   }, []);
 
@@ -57,6 +121,9 @@ export default function LandingPage({ onEnterConsole }) {
 
   return (
     <div className="landing-container">
+      {/* HTML5 Canvas Background for Golden Silk Flow Animation */}
+      <canvas ref={canvasRef} className="silk-canvas" />
+
       {/* Interactive mouse cursor glow */}
       <div 
         className="cursor-glow" 
