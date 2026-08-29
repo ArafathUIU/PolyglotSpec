@@ -59,7 +59,7 @@ class SchemaDiffEngine:
                     severity="breaking"
                 ))
                 
-        # Check type compatibility
+        # Check type compatibility and constraints tightening
         for field, c_info in consumer_props.items():
             if field in provider_props:
                 p_info = provider_props[field]
@@ -81,5 +81,56 @@ class SchemaDiffEngine:
                             message=f"Array item type mismatch: Consumer sends array of '{c_item}', but Provider expects '{p_item}'.",
                             severity="breaking"
                         ))
-                        
+                
+                # Check constraints tightening
+                # 1. minLength
+                p_min_len = p_info.get("minLength")
+                c_min_len = c_info.get("minLength")
+                if p_min_len is not None:
+                    if c_min_len is None or c_min_len < p_min_len:
+                        mismatches.append(Mismatch(
+                            field_path=field,
+                            message=f"minLength tightened: Provider requires at least {p_min_len} characters, but Consumer permits {c_min_len or 0}.",
+                            severity="breaking"
+                        ))
+                
+                # 2. maxLength
+                p_max_len = p_info.get("maxLength")
+                c_max_len = c_info.get("maxLength")
+                if p_max_len is not None:
+                    if c_max_len is None or c_max_len > p_max_len:
+                        mismatches.append(Mismatch(
+                            field_path=field,
+                            message=f"maxLength tightened: Provider permits at most {p_max_len} characters, but Consumer allows {c_max_len or 'unlimited'}.",
+                            severity="breaking"
+                        ))
+                
+                # 3. minimum
+                p_min = p_info.get("minimum")
+                c_min = c_info.get("minimum")
+                if p_min is not None:
+                    if c_min is None or c_min < p_min:
+                        mismatches.append(Mismatch(
+                            field_path=field,
+                            message=f"minimum tightened: Provider requires minimum {p_min}, but Consumer allows {c_min or '-unlimited'}.",
+                            severity="breaking"
+                        ))
+                
+                # 4. maximum
+                p_max = p_info.get("maximum")
+                c_max = c_info.get("maximum")
+                if p_max is not None:
+                    if c_max is None or c_max > p_max:
+                        mismatches.append(Mismatch(
+                            field_path=field,
+                            message=f"maximum tightened: Provider allows maximum {p_max}, but Consumer permits {c_max or 'unlimited'}.",
+                            severity="breaking"
+                        ))
+            else:
+                mismatches.append(Mismatch(
+                    field_path=field,
+                    message=f"Provider removed field '{field}' which is still defined on Consumer.",
+                    severity="warning"
+                ))
+                
         return mismatches
