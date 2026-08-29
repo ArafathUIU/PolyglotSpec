@@ -263,3 +263,51 @@ class AdversarialFuzzer:
                         "payload": mutated
                     })
         return payloads
+
+    def run_fuzz_test(self, target_url: str, payloads: list[dict]) -> list[dict]:
+        """Runs the fuzz payloads against the target URL and returns execution results."""
+        results = []
+        for case in payloads:
+            scenario = case["scenario"]
+            payload = case["payload"]
+            
+            try:
+                is_baseline = (scenario == "Baseline valid payload")
+                response = requests.post(target_url, json=payload, headers={"Content-Type": "application/json"}, timeout=10)
+                status = response.status_code
+                
+                if is_baseline:
+                    if status in (200, 201, 202, 204):
+                        outcome = "passed"
+                        msg = "Valid baseline payload accepted as expected."
+                    else:
+                        outcome = "failed"
+                        msg = f"Valid baseline payload was rejected with status {status}."
+                else:
+                    if status in (400, 422):
+                        outcome = "passed"
+                        msg = f"Rejected with expected status {status}."
+                    elif status >= 500:
+                        outcome = "crash"
+                        msg = f"Server crashed with status {status}!"
+                    else:
+                        outcome = "leak"
+                        msg = f"Vulnerability: Adversarial payload accepted with status {status}!"
+                        
+                results.append({
+                    "scenario": scenario,
+                    "payload": payload,
+                    "status_code": status,
+                    "outcome": outcome,
+                    "message": msg
+                })
+            except requests.RequestException as e:
+                results.append({
+                    "scenario": scenario,
+                    "payload": payload,
+                    "status_code": None,
+                    "outcome": "error",
+                    "message": f"Network error: {str(e)}"
+                })
+                
+        return results
