@@ -1,0 +1,123 @@
+.cicd-guide-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.guide-config {
+  padding: 24px;
+}
+
+.guide-title {
+  font-size: 1.15rem;
+  margin-bottom: 20px;
+}
+
+.config-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 24px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.config-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.platform-toggle {
+  display: flex;
+  gap: 8px;
+}
+
+.platform-toggle .btn-secondary {
+  flex-grow: 1;
+}
+
+.platform-toggle .btn-secondary.active {
+  background: var(--accent-gradient);
+  border-color: transparent;
+  color: white;
+}
+
+.config-input {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: white;
+  padding: 10px 14px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  outline: none;
+}
+
+.config-input:focus {
+  border-color: var(--accent-primary);
+}
+
+.checkbox-field {
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  margin-top: 24px;
+}
+
+.checkbox-label {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  user-select: none;
+  cursor: pointer;
+}
+
+.guide-info-text {
+  border-top: 1px solid var(--border-color);
+  padding-top: 16px;
+  margin-top: 16px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* Code Viewer styles */
+.code-viewer-panel {
+  display: flex;
+  flex-direction: column;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #05070c;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.code-header {
+  background: #090c13;
+  padding: 12px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.code-filename {
+  font-family: monospace;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.copy-btn {
+  padding: 6px 12px;
+  font-size: 0.8rem;
+}
+
+.code-pre {
+  padding: 20px;
+  overflow-x: auto;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.85rem;
+  color: var(--accent-cyan);
+  line-height: 1.6;
+}

@@ -3,6 +3,7 @@ import Sidebar from './components/Sidebar';
 import Overview from './pages/Overview';
 import DiffAnalyzer from './pages/DiffAnalyzer';
 import FuzzSimulator from './pages/FuzzSimulator';
+import CicdGuide from './pages/CicdGuide';
 import './App.css';
 
 export default function App() {
@@ -17,12 +18,7 @@ export default function App() {
       case 'fuzz':
         return <FuzzSimulator />;
       case 'cicd':
-        return (
-          <div className="page-stub">
-            <h2>CI/CD Guide</h2>
-            <p>Interactive workflow builder will load here.</p>
-          </div>
-        );
+        return <CicdGuide />;
       default:
         return <div>Not Found</div>;
     }
