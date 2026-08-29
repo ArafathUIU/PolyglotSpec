@@ -52,6 +52,28 @@ class PydanticParser:
             return node.value
         return None
 
+    def _extract_constraints(self, node: ast.AST) -> dict:
+        constraints = {}
+        if isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id == "Field":
+            if node.args:
+                first_arg = node.args[0]
+                if isinstance(first_arg, ast.Constant) and first_arg.value is not Ellipsis:
+                    constraints["default"] = first_arg.value
+                    constraints["required"] = False
+                elif isinstance(first_arg, ast.Constant) and first_arg.value is Ellipsis:
+                    constraints["required"] = True
+            
+            for kw in node.keywords:
+                if kw.arg == "default":
+                    if isinstance(kw.value, ast.Constant):
+                        constraints["default"] = kw.value.value
+                        if kw.value.value is not Ellipsis:
+                            constraints["required"] = False
+                elif kw.arg in ("min_length", "max_length", "gt", "ge", "lt", "le", "pattern", "regex", "multiple_of"):
+                    if isinstance(kw.value, ast.Constant):
+                        constraints[kw.arg] = kw.value.value
+        return constraints
+
     def _parse_class(self, node: ast.ClassDef):
         if not self._inherits_from_basemodel(node):
             return
@@ -64,17 +86,22 @@ class PydanticParser:
                 field_name = child.target.id
                 field_type = self._resolve_type(child.annotation)
                 
-                default_val = None
-                required = True
-                if child.value:
-                    default_val = self._resolve_default(child.value)
-                    required = False
-
-                fields[field_name] = {
+                field_info = {
                     "type": field_type,
-                    "required": required,
-                    "default": default_val
+                    "required": True,
+                    "default": None
                 }
+
+                if child.value:
+                    if isinstance(child.value, ast.Call) and isinstance(child.value.func, ast.Name) and child.value.func.id == "Field":
+                        constraints = self._extract_constraints(child.value)
+                        field_info.update(constraints)
+                    else:
+                        default_val = self._resolve_default(child.value)
+                        field_info["default"] = default_val
+                        field_info["required"] = False
+
+                fields[field_name] = field_info
 
         self.models[node.name] = {
             "fields": fields,
