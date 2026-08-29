@@ -134,3 +134,25 @@ class SchemaDiffEngine:
                 ))
                 
         return mismatches
+
+def format_diff(mismatches: list[Mismatch]) -> str:
+    from colorama import Fore, Style
+    
+    if not mismatches:
+        return f"{Fore.GREEN}✔ No contract drift detected. All checks passed.{Style.RESET_ALL}"
+        
+    lines = []
+    breaking_count = sum(1 for m in mismatches if m.severity == "breaking")
+    warning_count = sum(1 for m in mismatches if m.severity == "warning")
+    
+    for m in mismatches:
+        if m.severity == "breaking":
+            prefix = f"{Fore.RED}❌ Breaking{Style.RESET_ALL}"
+            lines.append(f"{prefix} [{Fore.CYAN}{m.field_path}{Style.RESET_ALL}]: {m.message}")
+        else:
+            prefix = f"{Fore.YELLOW}⚠️ Warning{Style.RESET_ALL}"
+            lines.append(f"{prefix} [{Fore.CYAN}{m.field_path}{Style.RESET_ALL}]: {m.message}")
+            
+    summary = f"\n{Fore.RED if breaking_count else Fore.GREEN}Contract Drift Summary: {breaking_count} breaking changes, {warning_count} warnings.{Style.RESET_ALL}"
+    lines.append(summary)
+    return "\n".join(lines)
