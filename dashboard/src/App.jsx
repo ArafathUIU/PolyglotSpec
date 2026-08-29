@@ -106,7 +106,7 @@ export default function App() {
   };
 
   const services = getDynamicServices();
-  const activeIssuesCount = services.reduce((acc, s) => acc + s.activeIssues, 0);
+  const activeIssuesCount = diffResults.length;
   const averageSyncScore = Math.round(services.reduce((acc, s) => acc + s.syncScore, 0) / services.length);
 
   const getAlertLevel = () => {

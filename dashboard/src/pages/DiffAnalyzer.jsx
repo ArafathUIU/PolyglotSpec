@@ -145,6 +145,119 @@ export default function DiffAnalyzer({
     runDiff();
   }, [consumerSchema, providerSchema]);
 
+  const presets = [
+    {
+      id: 'boundary',
+      name: 'Preset 1: Boundary Drift',
+      consumer: {
+        "StoreUserRequest": {
+          "fields": {
+            "username": {
+              "type": "string",
+              "required": true,
+              "nullable": false,
+              "min": 2,
+              "max": 30
+            }
+          },
+          "raw_class": "StoreUserRequest"
+        }
+      },
+      provider: {
+        "UserModel": {
+          "fields": {
+            "username": {
+              "type": "string",
+              "required": true,
+              "nullable": false,
+              "min_length": 3,
+              "max_length": 20
+            }
+          },
+          "raw_class": "UserModel"
+        }
+      },
+      consumerLang: 'laravel',
+      providerLang: 'python'
+    },
+    {
+      id: 'required',
+      name: 'Preset 2: Missing Required Field',
+      consumer: {
+        "StoreUserRequest": {
+          "fields": {
+            "username": {
+              "type": "string",
+              "required": true,
+              "nullable": false
+            }
+          },
+          "raw_class": "StoreUserRequest"
+        }
+      },
+      provider: {
+        "UserModel": {
+          "fields": {
+            "username": {
+              "type": "string",
+              "required": true,
+              "nullable": false
+            },
+            "tax_code": {
+              "type": "string",
+              "required": true,
+              "nullable": false
+            }
+          },
+          "raw_class": "UserModel"
+        }
+      },
+      consumerLang: 'laravel',
+      providerLang: 'python'
+    },
+    {
+      id: 'synced',
+      name: 'Preset 3: Fully Synced',
+      consumer: {
+        "StoreUserRequest": {
+          "fields": {
+            "username": {
+              "type": "string",
+              "required": true,
+              "nullable": false,
+              "min": 3,
+              "max": 20
+            }
+          },
+          "raw_class": "StoreUserRequest"
+        }
+      },
+      provider: {
+        "UserModel": {
+          "fields": {
+            "username": {
+              "type": "string",
+              "required": true,
+              "nullable": false,
+              "min_length": 3,
+              "max_length": 20
+            }
+          },
+          "raw_class": "UserModel"
+        }
+      },
+      consumerLang: 'laravel',
+      providerLang: 'python'
+    }
+  ];
+
+  const handleApplyPreset = (preset) => {
+    setConsumerLang(preset.consumerLang);
+    setProviderLang(preset.providerLang);
+    setConsumerSchema(JSON.stringify(preset.consumer, null, 2));
+    setProviderSchema(JSON.stringify(preset.provider, null, 2));
+  };
+
   // Load sample schema
   const handleLoadSample = (type, lang) => {
     if (type === 'consumer') {
@@ -158,6 +271,22 @@ export default function DiffAnalyzer({
 
   return (
     <div className="diff-analyzer-container">
+      {/* Presets Toolbar */}
+      <div className="presets-toolbar glass-panel">
+        <span className="presets-label">⚡ Quick Presets:</span>
+        <div className="presets-buttons">
+          {presets.map((preset) => (
+            <button
+              key={preset.id}
+              className="btn-secondary btn-sm preset-btn"
+              onClick={() => handleApplyPreset(preset)}
+            >
+              {preset.name}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Selection row */}
       <div className="diff-header-row">
         <div className="selector-panel glass-panel">
