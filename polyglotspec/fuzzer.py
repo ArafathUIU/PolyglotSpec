@@ -167,9 +167,9 @@ class AdversarialFuzzer:
             with open(prompt_path, "r", encoding="utf-8") as f:
                 prompt_template = f.read()
         else:
-            prompt_template = "System: Generate fuzz JSON array for schema: {schema_content}"
+            prompt_template = "System: Generate fuzz JSON array for schema: __SCHEMA_CONTENT__"
             
-        formatted_prompt = prompt_template.format(schema_content=json.dumps(self.schema, indent=2))
+        formatted_prompt = prompt_template.replace("__SCHEMA_CONTENT__", json.dumps(self.schema, indent=2))
         
         if not slm_endpoint:
             return self._get_fallback_semantic_payloads()

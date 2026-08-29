@@ -142,15 +142,15 @@ def fuzz(schema_file, target, slm_endpoint, model):
             msg = res["message"]
             
             if outcome == "passed":
-                click.echo(f"{Fore.GREEN}✔ PASS{Style.RESET_ALL} [{scenario}]: {msg}")
+                click.echo(f"{Fore.GREEN}[OK] PASS{Style.RESET_ALL} [{scenario}]: {msg}")
             elif outcome == "leak":
-                click.echo(f"{Fore.YELLOW}⚠️ LEAK{Style.RESET_ALL} [{scenario}]: {msg}")
+                click.echo(f"{Fore.YELLOW}[LEAK]{Style.RESET_ALL} [{scenario}]: {msg}")
                 has_issue = True
             elif outcome == "crash":
-                click.echo(f"{Fore.RED}💥 CRASH{Style.RESET_ALL} [{scenario}]: {msg}")
+                click.echo(f"{Fore.RED}[CRASH]{Style.RESET_ALL} [{scenario}]: {msg}")
                 has_issue = True
             else:
-                click.echo(f"{Fore.RED}❌ ERROR{Style.RESET_ALL} [{scenario}]: {msg}")
+                click.echo(f"{Fore.RED}[ERROR]{Style.RESET_ALL} [{scenario}]: {msg}")
                 has_issue = True
                 
         if has_issue:

@@ -17,6 +17,6 @@ The output must be formatted as a valid JSON array of test cases, where each ele
 }
 
 JSON Schema:
-{schema_content}
+__SCHEMA_CONTENT__
 
 Generate the test cases JSON now:
