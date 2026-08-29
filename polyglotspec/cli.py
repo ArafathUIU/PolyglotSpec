@@ -107,11 +107,58 @@ def diff(consumer, provider):
 @main.command()
 @click.argument('schema_file', type=click.Path(exists=True))
 @click.option('--target', help="Target URL of the microservice endpoint to fuzz.")
-def fuzz(schema_file, target):
+@click.option('--slm-endpoint', help="Optional SLM HTTP endpoint for semantic fuzzing.")
+@click.option('--model', default="llama3", help="Model name to use for SLM endpoint.")
+def fuzz(schema_file, target, slm_endpoint, model):
     """Generate and run adversarial test payloads to fuzz target API."""
-    click.echo(f"Fuzzing schema: {schema_file}")
-    if target:
-        click.echo(f"Target endpoint: {target}")
+    try:
+        schemas = load_schema_from_file(schema_file)
+        if not schemas:
+            click.echo("No schemas found in file.", err=True)
+            sys.exit(1)
+            
+        schema_name, schema = list(schemas.items())[0]
+        
+        from polyglotspec.fuzzer import AdversarialFuzzer
+        fuzzer = AdversarialFuzzer(schema)
+        
+        deterministic = fuzzer.generate_deterministic_payloads()
+        semantic = fuzzer.generate_semantic_payloads(slm_endpoint=slm_endpoint, model=model)
+        all_cases = deterministic + semantic
+        
+        if not target:
+            click.echo(json.dumps(all_cases, indent=2))
+            return
+            
+        click.echo(f"Fuzzing target endpoint: {target} with {len(all_cases)} test cases...")
+        results = fuzzer.run_fuzz_test(target, all_cases)
+        
+        from colorama import Fore, Style
+        has_issue = False
+        for res in results:
+            scenario = res["scenario"]
+            outcome = res["outcome"]
+            status = res["status_code"]
+            msg = res["message"]
+            
+            if outcome == "passed":
+                click.echo(f"{Fore.GREEN}✔ PASS{Style.RESET_ALL} [{scenario}]: {msg}")
+            elif outcome == "leak":
+                click.echo(f"{Fore.YELLOW}⚠️ LEAK{Style.RESET_ALL} [{scenario}]: {msg}")
+                has_issue = True
+            elif outcome == "crash":
+                click.echo(f"{Fore.RED}💥 CRASH{Style.RESET_ALL} [{scenario}]: {msg}")
+                has_issue = True
+            else:
+                click.echo(f"{Fore.RED}❌ ERROR{Style.RESET_ALL} [{scenario}]: {msg}")
+                has_issue = True
+                
+        if has_issue:
+            sys.exit(1)
+            
+    except Exception as e:
+        click.echo(f"Error executing fuzz test: {e}", err=True)
+        sys.exit(1)
 
 if __name__ == '__main__':
     main()
