@@ -45,7 +45,73 @@ class PydanticParser:
                 "bool": "boolean",
             }
             return name_map.get(node.id, node.id)
+            
+        elif isinstance(node, ast.Subscript):
+            wrapper = ""
+            if isinstance(node.value, ast.Name):
+                wrapper = node.value.id
+            
+            # Extract list or generic parameter
+            slice_type = self._resolve_type(node.slice)
+            
+            if wrapper in ("Optional", "Union"):
+                return slice_type
+            elif wrapper in ("List", "list"):
+                return f"array[{slice_type}]"
+            elif wrapper == "Annotated":
+                if isinstance(node.slice, ast.Tuple) and node.slice.elts:
+                    return self._resolve_type(node.slice.elts[0])
+                return slice_type
+            
+            return f"{wrapper}[{slice_type}]"
+            
+        elif isinstance(node, ast.Tuple):
+            types = [self._resolve_type(elt) for elt in node.elts]
+            # Filter out null/None if present in Union representation
+            types = [t for t in types if t not in ("None", "null", "NoneType")]
+            if len(types) == 1:
+                return types[0]
+            return "|".join(types)
+            
+        elif isinstance(node, ast.BinOp) and isinstance(node.op, ast.BitOr):
+            left_type = self._resolve_type(node.left)
+            right_type = self._resolve_type(node.right)
+            types = [t for t in (left_type, right_type) if t not in ("None", "null", "NoneType")]
+            if len(types) == 1:
+                return types[0]
+            return "|".join(types)
+            
+        elif isinstance(node, ast.Constant) and node.value is None:
+            return "null"
+            
         return "any"
+
+    def _parse_type_and_nullable(self, node: ast.AST) -> tuple[str, bool]:
+        is_nullable = False
+
+        def check_nullable(t_node: ast.AST) -> bool:
+            if isinstance(t_node, ast.BinOp) and isinstance(t_node.op, ast.BitOr):
+                return check_nullable(t_node.left) or check_nullable(t_node.right)
+            if isinstance(t_node, ast.Subscript) and isinstance(t_node.value, ast.Name):
+                if t_node.value.id == "Optional":
+                    return True
+                if t_node.value.id == "Union":
+                    if isinstance(t_node.slice, ast.Tuple):
+                        return any(check_nullable(elt) for elt in t_node.slice.elts)
+                    return check_nullable(t_node.slice)
+                if t_node.value.id == "Annotated":
+                    if isinstance(t_node.slice, ast.Tuple) and t_node.slice.elts:
+                        return check_nullable(t_node.slice.elts[0])
+                    return check_nullable(t_node.slice)
+            if isinstance(t_node, ast.Constant) and t_node.value is None:
+                return True
+            if isinstance(t_node, ast.Name) and t_node.id in ("None", "NoneType"):
+                return True
+            return False
+
+        is_nullable = check_nullable(node)
+        resolved_type = self._resolve_type(node)
+        return resolved_type, is_nullable
 
     def _resolve_default(self, node: ast.AST):
         if isinstance(node, ast.Constant):
@@ -84,13 +150,22 @@ class PydanticParser:
                 if not isinstance(child.target, ast.Name):
                     continue
                 field_name = child.target.id
-                field_type = self._resolve_type(child.annotation)
+                field_type, is_nullable = self._parse_type_and_nullable(child.annotation)
                 
                 field_info = {
                     "type": field_type,
-                    "required": True,
+                    "required": not is_nullable,
+                    "nullable": is_nullable,
                     "default": None
                 }
+
+                # Check if there are constraints from Annotated
+                if isinstance(child.annotation, ast.Subscript) and isinstance(child.annotation.value, ast.Name) and child.annotation.value.id == "Annotated":
+                    if isinstance(child.annotation.slice, ast.Tuple):
+                        for elt in child.annotation.slice.elts:
+                            if isinstance(elt, ast.Call) and isinstance(elt.func, ast.Name) and elt.func.id == "Field":
+                                constraints = self._extract_constraints(elt)
+                                field_info.update(constraints)
 
                 if child.value:
                     if isinstance(child.value, ast.Call) and isinstance(child.value.func, ast.Name) and child.value.func.id == "Field":
