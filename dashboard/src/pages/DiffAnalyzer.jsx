@@ -16,6 +16,9 @@ export default function DiffAnalyzer({
 }) {
   const [errorMsg, setErrorMsg] = useState('');
   const [activePreset, setActivePreset] = useState('preset1');
+  const [expandedFixIdx, setExpandedFixIdx] = useState(null);
+  const [llmExplanation, setLlmExplanation] = useState({});
+  const [loadingLlm, setLoadingLlm] = useState(null);
 
   // Run visual diff rules
   const runDiff = () => {
@@ -272,6 +275,139 @@ export default function DiffAnalyzer({
     }
   };
 
+  const getAIExplanation = (res) => {
+    const msg = res.message;
+    if (msg.includes('minimum value') || msg.includes('length minimum')) {
+      return `The consumer request rules allow smaller inputs than the provider backend is configured to accept. Any request containing a value below the provider's threshold will result in a 400 Bad Request at runtime.`;
+    }
+    if (msg.includes('maximum value') || msg.includes('length maximum')) {
+      return `The consumer request rules permit larger inputs than the provider validates. This is a security risk that can cause database field truncation errors or memory resource exhaustion on the backend API.`;
+    }
+    if (msg.includes('Required field omission')) {
+      return `The provider API marks this parameter as required, but the consumer validation rules do not enforce its presence. A client sending requests without this field will trigger 422 Unprocessable Entity errors.`;
+    }
+    if (msg.includes('Type mismatch')) {
+      return `The consumer validation rules expect a different data type than the provider expects. This causes type casting failures or serialization exceptions during API payload parsing.`;
+    }
+    return `A contract drift constraint mismatch was detected. Align the schema parameters between the consumer's request rules and the provider's API specifications.`;
+  };
+
+  const askLlmAdvisor = async (idx, res) => {
+    setLoadingLlm(idx);
+    setLlmExplanation(prev => ({ ...prev, [idx]: 'Calling local LLM (Ollama) endpoint...' }));
+    
+    try {
+      const prompt = `Explain the following microservice API contract drift in 2 sentences. Mismatch: ${res.message}`;
+      const response = await fetch('http://localhost:11434/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'llama3',
+          messages: [{ role: 'user', content: prompt }]
+        })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        const content = data.choices?.[0]?.message?.content || 'No explanation received.';
+        setLlmExplanation(prev => ({ ...prev, [idx]: content }));
+      } else {
+        throw new Error('Ollama offline');
+      }
+    } catch (err) {
+      // Offline fallback after minor delay for native loading feel
+      setTimeout(() => {
+        const fallback = `[Local AI Advisor]: ${getAIExplanation(res)} Suggested fix: Click "Align Consumer" or "Align Provider" below to sync the contract boundaries automatically.`;
+        setLlmExplanation(prev => ({ ...prev, [idx]: fallback }));
+      }, 700);
+    } finally {
+      setTimeout(() => setLoadingLlm(null), 700);
+    }
+  };
+
+  const applyAIFix = (res, target) => {
+    try {
+      const consumer = JSON.parse(consumerSchema);
+      const provider = JSON.parse(providerSchema);
+      
+      const consumerKey = Object.keys(consumer)[0];
+      const providerKey = Object.keys(provider)[0];
+      if (!consumerKey || !providerKey) return;
+      
+      const cField = consumer[consumerKey].fields[res.field];
+      const pField = provider[providerKey].fields[res.field];
+      
+      const msg = res.message;
+      
+      // 1. Min boundary drift
+      if (msg.includes('minimum value') || msg.includes('length minimum')) {
+        const match = msg.match(/(?:minimum value|length minimum) (\d+), but Provider requires minimum (\d+)/);
+        if (match) {
+          const cMin = parseInt(match[1]);
+          const pMin = parseInt(match[2]);
+          if (target === 'consumer') {
+            if (cField.min !== undefined) cField.min = pMin;
+            if (cField.minimum !== undefined) cField.minimum = pMin;
+            if (cField.min_length !== undefined) cField.min_length = pMin;
+          } else {
+            if (pField.minimum !== undefined) pField.minimum = cMin;
+            if (pField.ge !== undefined) pField.ge = cMin;
+            if (pField.min_length !== undefined) pField.min_length = cMin;
+            if (pField.min !== undefined) pField.min = cMin;
+          }
+        }
+      }
+      
+      // 2. Max boundary drift
+      else if (msg.includes('maximum value') || msg.includes('length maximum')) {
+        const match = msg.match(/(?:maximum value|length maximum) (\d+), but Provider limits maximum to (\d+)/);
+        if (match) {
+          const cMax = parseInt(match[1]);
+          const pMax = parseInt(match[2]);
+          if (target === 'consumer') {
+            if (cField.max !== undefined) cField.max = pMax;
+            if (cField.maximum !== undefined) cField.maximum = pMax;
+            if (cField.max_length !== undefined) cField.max_length = pMax;
+          } else {
+            if (pField.maximum !== undefined) pField.maximum = cMax;
+            if (pField.le !== undefined) pField.le = cMax;
+            if (pField.max_length !== undefined) pField.max_length = cMax;
+            if (pField.max !== undefined) pField.max = cMax;
+          }
+        }
+      }
+      
+      // 3. Required field omission
+      else if (msg.includes('Required field omission')) {
+        if (target === 'consumer') {
+          if (cField) cField.required = true;
+        } else {
+          if (pField) pField.required = false;
+        }
+      }
+      
+      // 4. Type mismatch
+      else if (msg.includes('Type mismatch')) {
+        const match = msg.match(/Consumer sends '([^']*)', but Provider expects '([^']*)'/);
+        if (match) {
+          const cType = match[1];
+          const pType = match[2];
+          if (target === 'consumer') {
+            if (cField) cField.type = pType;
+          } else {
+            if (pField) pField.type = cType;
+          }
+        }
+      }
+      
+      setConsumerSchema(JSON.stringify(consumer, null, 2));
+      setProviderSchema(JSON.stringify(provider, null, 2));
+      setExpandedFixIdx(null); // Collapse panel
+    } catch (err) {
+      console.error("AI fix parsing failed:", err);
+    }
+  };
+
   return (
     <div className="diff-analyzer-container">
       {/* Presets Toolbar */}
@@ -381,17 +517,65 @@ export default function DiffAnalyzer({
 
         {!errorMsg && diffResults.length > 0 && (
           <div className="mismatches-list">
-            {diffResults.map((res, i) => (
-              <div key={i} className={`mismatch-card ${res.severity}`}>
-                <span className={`status-badge ${res.severity === 'breaking' ? 'red' : 'yellow'}`}>
-                  {res.severity}
-                </span>
-                <div className="mismatch-info">
-                  <span className="mismatch-field">[{res.field}]</span>
-                  <span className="mismatch-text">{res.message}</span>
+            {diffResults.map((res, i) => {
+              const isExpanded = expandedFixIdx === i;
+              return (
+                <div key={i} className={`mismatch-card ${res.severity} ${isExpanded ? 'ai-expanded' : ''}`}>
+                  <div className="mismatch-header-row">
+                    <div className="mismatch-main-info">
+                      <span className={`status-badge ${res.severity === 'breaking' ? 'red' : 'yellow'}`}>
+                        {res.severity}
+                      </span>
+                      <div className="mismatch-info">
+                        <span className="mismatch-field">[{res.field}]</span>
+                        <span className="mismatch-text">{res.message}</span>
+                      </div>
+                    </div>
+                    <button 
+                      className={`btn-secondary btn-xs ai-copilot-btn ${isExpanded ? 'active' : ''}`}
+                      onClick={() => {
+                        setExpandedFixIdx(isExpanded ? null : i);
+                        if (!isExpanded && !llmExplanation[i]) {
+                          askLlmAdvisor(i, res);
+                        }
+                      }}
+                    >
+                      🪄 AI Copilot
+                    </button>
+                  </div>
+
+                  {isExpanded && (
+                    <div className="ai-fix-panel">
+                      <div className="ai-fix-divider"></div>
+                      <div className="ai-advisor-header">
+                        <span className="ai-sparkle-icon">✨</span>
+                        <span className="ai-advisor-title">AI Resolution Advisor</span>
+                      </div>
+                      <p className="ai-explanation-text">
+                        {llmExplanation[i] || 'Analyzing contract drift...'}
+                      </p>
+                      <div className="ai-fix-actions">
+                        <span className="ai-action-label">Apply Alignment Fix:</span>
+                        <div className="ai-action-buttons">
+                          <button 
+                            className="btn-primary btn-xs"
+                            onClick={() => applyAIFix(res, 'consumer')}
+                          >
+                            Align Consumer ➔
+                          </button>
+                          <button 
+                            className="btn-secondary btn-xs"
+                            onClick={() => applyAIFix(res, 'provider')}
+                          >
+                            Align Provider ➔
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

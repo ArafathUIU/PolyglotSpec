@@ -297,3 +297,108 @@
   border-color: rgba(236, 208, 120, 0.3) !important;
   background: rgba(255, 255, 255, 0.06) !important;
 }
+
+/* AI Copilot Panel Styles */
+.mismatch-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.mismatch-main-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ai-copilot-btn {
+  background: rgba(236, 208, 120, 0.05) !important;
+  border-color: rgba(236, 208, 120, 0.15) !important;
+  color: #ecd078 !important;
+  padding: 4px 10px !important;
+  font-size: 0.7rem !important;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ai-copilot-btn:hover {
+  background: rgba(236, 208, 120, 0.12) !important;
+  border-color: #ecd078 !important;
+  box-shadow: 0 0 10px rgba(236, 208, 120, 0.25) !important;
+}
+
+.ai-copilot-btn.active {
+  background: rgba(236, 208, 120, 0.15) !important;
+  border-color: #ecd078 !important;
+  box-shadow: 0 0 12px rgba(236, 208, 120, 0.45) !important;
+}
+
+.ai-fix-panel {
+  margin-top: 14px;
+  width: 100%;
+}
+
+.ai-fix-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.06);
+  margin-bottom: 12px;
+}
+
+.ai-advisor-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.ai-sparkle-icon {
+  font-size: 0.95rem;
+}
+
+.ai-advisor-title {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #ecd078;
+  font-weight: 600;
+}
+
+.ai-explanation-text {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin-bottom: 14px;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 10px 14px;
+  border-radius: 8px;
+  border-left: 3px solid #ecd078;
+}
+
+.ai-fix-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.ai-action-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.ai-action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.mismatch-card {
+  transition: all 0.3s var(--transition-normal);
+}
+
+.mismatch-card.ai-expanded {
+  border-color: rgba(236, 208, 120, 0.25) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5) !important;
+}
