@@ -25,10 +25,25 @@
 }
 
 .brand-name {
-  font-size: 1.4rem;
-  font-family: 'Syne', sans-serif;
-  font-weight: 800;
-  letter-spacing: -0.03em;
+  font-size: 1.35rem;
+  font-family: 'Cinzel Decorative', serif;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  background: linear-gradient(135deg, #fce0ad 0%, #ecd078 50%, #b8860b 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 0 5px rgba(236, 208, 120, 0.3));
+  animation: logo-glow 3s infinite ease-in-out;
+}
+
+@keyframes logo-glow {
+  0%, 100% {
+    filter: drop-shadow(0 0 4px rgba(236, 208, 120, 0.25));
+  }
+  50% {
+    filter: drop-shadow(0 0 12px rgba(236, 208, 120, 0.65));
+  }
 }
 
 .sidebar-nav {
@@ -63,9 +78,9 @@
 }
 
 .nav-item.active {
-  background: var(--accent-gradient);
-  color: white;
-  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.25);
+  background: var(--color-accent-gradient);
+  color: #0d0f13;
+  box-shadow: 0 4px 20px rgba(236, 208, 120, 0.3);
 }
 
 .nav-icon {
