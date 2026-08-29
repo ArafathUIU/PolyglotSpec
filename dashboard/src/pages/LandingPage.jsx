@@ -3,6 +3,7 @@ import './LandingPage.css';
 
 export default function LandingPage({ onEnterConsole }) {
   const [mousePos, setMousePos] = React.useState({ x: -1000, y: -1000 });
+  const [expandedFaq, setExpandedFaq] = React.useState(null);
   const canvasRef = React.useRef(null);
 
   React.useEffect(() => {
@@ -246,14 +247,30 @@ export default function LandingPage({ onEnterConsole }) {
 
       {/* FAQ Section */}
       <section className="section-container">
-        <h2 className="section-title text-center">Frequently Asked Questions</h2>
-        <div className="faq-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px', marginTop: '40px' }}>
-          {faqs.map((faq, idx) => (
-            <div key={idx} className="faq-card glass-panel" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <h3 className="faq-question" style={{ fontSize: '1.05rem', fontWeight: '700', color: 'var(--text-primary)' }}>{faq.q}</h3>
-              <p className="faq-answer" style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', lineHeight: '1.6' }}>{faq.a}</p>
-            </div>
-          ))}
+        <div className="faq-accordion-container">
+          <h2 className="faq-title-main">People also ask</h2>
+          <div className="faq-list">
+            {faqs.map((faq, idx) => {
+              const isExpanded = expandedFaq === idx;
+              return (
+                <div 
+                  key={idx} 
+                  className="faq-row"
+                  onClick={() => setExpandedFaq(isExpanded ? null : idx)}
+                >
+                  <div className="faq-question-bar">
+                    <span className="faq-question-text">{faq.q}</span>
+                    <span className={`faq-chevron ${isExpanded ? 'expanded' : ''}`}>
+                      <span style={{ fontSize: '0.75rem', display: 'block', transform: 'scale(1.2)' }}>▼</span>
+                    </span>
+                  </div>
+                  <div className={`faq-answer-wrapper ${isExpanded ? 'expanded' : ''}`}>
+                    <p className="faq-answer-text">{faq.a}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </section>
 
