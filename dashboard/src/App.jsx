@@ -213,7 +213,9 @@ export default function App() {
         </header>
 
         <div className="content-container">
-          {renderContent()}
+          <div key={activeTab} className="fade-in-slide">
+            {renderContent()}
+          </div>
         </div>
       </main>
     </div>
