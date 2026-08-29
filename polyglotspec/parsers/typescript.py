@@ -19,6 +19,7 @@ class ZodSchemaParser:
         """Tokenize TS/JS source code into a list of string tokens."""
         token_specification = [
             ('STRING', r'\'[^\'\\]*(?:\\.[^\'\\]*)*\'|"[^"\\]*(?:\\.[^"\\]*)*"|`[^`\\]*(?:\\.[^`\\]*)*`'),
+            ('NUMBER', r'\d+'),
             ('DOT', r'\.'),
             ('COLON', r':'),
             ('ASSIGN', r'='),
