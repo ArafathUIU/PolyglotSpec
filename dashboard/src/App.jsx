@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import Sidebar from './components/Sidebar';
+import Overview from './pages/Overview';
 import './App.css';
 
 export default function App() {
@@ -8,12 +9,7 @@ export default function App() {
   const renderContent = () => {
     switch (activeTab) {
       case 'overview':
-        return (
-          <div className="page-stub">
-            <h2>Overview Panel</h2>
-            <p>Metrics and connected services list will load here.</p>
-          </div>
-        );
+        return <Overview />;
       case 'diff':
         return (
           <div className="page-stub">
