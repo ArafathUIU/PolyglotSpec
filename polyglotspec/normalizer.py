@@ -56,7 +56,9 @@ class CanonicalNormalizer:
             if "lt" in info:
                 prop["exclusiveMaximum"] = info["lt"]
                 
-            # Map PHP / TS Zod constraints (min/max depends on type)
+            # Map PHP / TypeScript Zod constraints (min/max depends on type)
+            # - For Zod string schemas, .min()/.max() translate to minLength/maxLength
+            # - For Zod number schemas, .min()/.max() translate to minimum/maximum
             if "min" in info:
                 val = info["min"]
                 if base_type == "string":
