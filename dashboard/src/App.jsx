@@ -21,6 +21,40 @@ export default function App() {
   );
   const [diffResults, setDiffResults] = useState([]);
 
+  const getModelDetails = (schemaStr, defaultName, defaultFile, lang) => {
+    try {
+      const parsed = JSON.parse(schemaStr);
+      const keys = Object.keys(parsed);
+      if (keys.length === 0) return { name: defaultName, file: "Active Session Comparison", isFlat: true };
+      
+      const firstKey = keys[0];
+      const firstVal = parsed[firstKey];
+      
+      if (firstVal && typeof firstVal === 'object' && firstVal.fields) {
+        const rawClass = firstVal.raw_class || firstKey;
+        let path = defaultFile;
+        if (lang === 'laravel') {
+          path = `app/Http/Requests/${rawClass}.php`;
+        } else if (lang === 'python') {
+          path = `app/models/${rawClass.toLowerCase()}.py`;
+        } else if (lang === 'typescript') {
+          path = `src/schemas/${rawClass.toLowerCase()}.ts`;
+        }
+        return { name: rawClass, file: path, isFlat: false };
+      }
+      
+      // Check if flat
+      const isFlat = Object.values(parsed).some(v => v && typeof v === 'object' && 'type' in v);
+      if (isFlat) {
+        return { name: "Flat Schema", file: "Active Session Comparison", isFlat: true };
+      }
+      
+      return { name: defaultName, file: "Active Session Comparison", isFlat: true };
+    } catch (e) {
+      return { name: defaultName, file: defaultFile, isFlat: false };
+    }
+  };
+
   // Compute stats dynamically
   const getDynamicServices = () => {
     const breakingCount = diffResults.filter(r => r.severity === 'breaking').length;
@@ -28,42 +62,45 @@ export default function App() {
     const totalIssues = diffResults.length;
     const computedScore = Math.max(0, 100 - (breakingCount * 10) - (warningCount * 5));
 
+    const consumerInfo = getModelDetails(consumerSchema, "StoreUserRequest", "StoreUserRequest.php", consumerLang);
+    const providerInfo = getModelDetails(providerSchema, "UserModel", "user_models.py", providerLang);
+
     return [
       {
         id: "laravel-api",
-        name: "Laravel Core API",
+        name: consumerLang === 'laravel' ? consumerInfo.name : "Laravel Core API",
         type: "consumer",
         framework: "PHP / Laravel",
         status: consumerLang === 'laravel' ? (totalIssues > 0 ? 'drifted' : 'synced') : 'synced',
         lastChecked: "Just now",
         activeIssues: consumerLang === 'laravel' ? totalIssues : 0,
         syncScore: consumerLang === 'laravel' ? computedScore : 100,
-        filePath: "app/Http/Requests/StoreUserRequest.php",
-        schemaKey: "StoreUserRequest"
+        filePath: consumerLang === 'laravel' ? consumerInfo.file : "app/Http/Requests/StoreUserRequest.php",
+        schemaKey: consumerLang === 'laravel' ? consumerInfo.name : "StoreUserRequest"
       },
       {
         id: "fastapi-service",
-        name: "FastAPI AI Microservice",
+        name: providerLang === 'python' ? providerInfo.name : "FastAPI AI Microservice",
         type: "provider",
         framework: "Python / FastAPI",
-        status: "synced",
+        status: providerLang === 'python' ? (totalIssues > 0 ? 'drifted' : 'synced') : 'synced',
         lastChecked: "Just now",
-        activeIssues: 0,
-        syncScore: 100,
-        filePath: "app/models/user.py",
-        schemaKey: "UserModel"
+        activeIssues: providerLang === 'python' ? totalIssues : 0,
+        syncScore: providerLang === 'python' ? computedScore : 100,
+        filePath: providerLang === 'python' ? providerInfo.file : "app/models/user.py",
+        schemaKey: providerLang === 'python' ? providerInfo.name : "UserModel"
       },
       {
         id: "node-gateway",
-        name: "Express API Gateway",
+        name: consumerLang === 'typescript' ? consumerInfo.name : "Express API Gateway",
         type: "consumer",
         framework: "TypeScript / Node.js (Zod)",
         status: consumerLang === 'typescript' ? (totalIssues > 0 ? 'drifted' : 'synced') : 'synced',
         lastChecked: "Just now",
         activeIssues: consumerLang === 'typescript' ? totalIssues : 0,
         syncScore: consumerLang === 'typescript' ? computedScore : 100,
-        filePath: "src/schemas/user.ts",
-        schemaKey: "UserSchema"
+        filePath: consumerLang === 'typescript' ? consumerInfo.file : "src/schemas/user.ts",
+        schemaKey: consumerLang === 'typescript' ? consumerInfo.name : "UserSchema"
       }
     ];
   };
@@ -80,6 +117,38 @@ export default function App() {
 
   const alertLevel = getAlertLevel();
 
+  const getDynamicHistory = () => {
+    if (diffResults.length === 0) {
+      return [
+        {
+          id: "dh-sync",
+          service: consumerLang === 'laravel' ? "Laravel Core API" : "Express API Gateway",
+          commit: "latest",
+          author: "Active Session",
+          message: "Contract drift check passed successfully",
+          severity: "info",
+          timestamp: "Just now",
+          details: "All fields are fully compatible."
+        }
+      ];
+    }
+
+    return diffResults.map((res, index) => {
+      return {
+        id: `dh-dyn-${index}`,
+        service: consumerLang === 'laravel' ? "Laravel Core API" : "Express API Gateway",
+        commit: `drift-${index + 1}`,
+        author: "Active Session",
+        message: `Detected drift in field: ${res.field}`,
+        severity: res.severity,
+        timestamp: "Just now",
+        details: res.message
+      };
+    });
+  };
+
+  const history = getDynamicHistory();
+
   const renderContent = () => {
     switch (activeTab) {
       case 'overview':
@@ -89,6 +158,7 @@ export default function App() {
             averageSyncScore={averageSyncScore}
             activeIssuesCount={activeIssuesCount}
             alertLevel={alertLevel}
+            history={history}
           />
         );
       case 'diff':

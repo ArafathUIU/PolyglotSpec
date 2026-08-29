@@ -6,7 +6,8 @@ export default function Overview({
   services = initialServices,
   averageSyncScore = 94,
   activeIssuesCount = 2,
-  alertLevel = "Drift Warning"
+  alertLevel = "Drift Warning",
+  history = driftHistory
 }) {
   const getSeverityClass = (sev) => {
     return sev === 'breaking' ? 'red' : 'yellow';
@@ -107,24 +108,24 @@ export default function Overview({
         <section className="timeline-section glass-panel">
           <h3 className="section-title">Contract Change History</h3>
           <div className="timeline-list">
-            {driftHistory.map((history) => (
-              <div key={history.id} className="timeline-item">
+            {history.map((item) => (
+              <div key={item.id} className="timeline-item">
                 <div className="timeline-badge-container">
                   <div className={`timeline-dot ${getSeverityClass(history.severity)}`}></div>
                   <div className="timeline-line"></div>
                 </div>
                 <div className="timeline-content">
                   <div className="timeline-header">
-                    <span className="timeline-commit">commit {history.commit}</span>
-                    <span className="timeline-time">{history.timestamp}</span>
+                    <span className="timeline-commit">commit {item.commit}</span>
+                    <span className="timeline-time">{item.timestamp}</span>
                   </div>
-                  <h4 className="timeline-service-name">{history.service}</h4>
-                  <p className="timeline-msg">{history.message}</p>
+                  <h4 className="timeline-service-name">{item.service}</h4>
+                  <p className="timeline-msg">{item.message}</p>
                   <div className="timeline-drift-info">
-                    <span className={`status-badge ${getSeverityClass(history.severity)}`}>
-                      {history.severity}
+                    <span className={`status-badge ${getSeverityClass(item.severity)}`}>
+                      {item.severity}
                     </span>
-                    <span className="drift-desc">{history.details}</span>
+                    <span className="drift-desc">{item.details}</span>
                   </div>
                 </div>
               </div>
