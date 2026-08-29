@@ -104,18 +104,27 @@ export default function LandingPage({ onEnterConsole }) {
   const steps = [
     {
       num: "01",
-      title: "Install Local CLI",
-      code: "pip install -e ."
+      title: "1. Install Local CLI Engine",
+      desc: "Clone the core package repository and register the validation command parser inside your workspace shell environment.",
+      code: "git clone https://github.com/ArafathUIU/PolyglotSpec.git\ncd PolyglotSpec\npip install -e ."
     },
     {
       num: "02",
-      title: "Check Validation Schema",
-      code: "polyglotspec check app/models/user.py"
+      title: "2. Generate Schema Definitions",
+      desc: "Run the schema command to parse PHP request rules, Python Pydantic models, or Zod schemas directly into normalized contract files.",
+      code: "# Extract Python FastAPI rules\npolyglotspec check app/models/user.py --out python.json\n\n# Extract Laravel Request rules\npolyglotspec check app/Http/Requests/StoreUserRequest.php --out php.json"
     },
     {
       num: "03",
-      title: "Detect Contract Drift",
-      code: "polyglotspec diff consumer.json provider.json"
+      title: "3. Check Contract Drifts",
+      desc: "Compare your consumer specifications against provider API contracts to isolate schema discrepancies, length limits, or nullability mismatches.",
+      code: "polyglotspec diff php.json python.json --fail-on-warnings"
+    },
+    {
+      num: "04",
+      title: "4. Automate PR Checks",
+      desc: "Deploy validation comparisons inside your workflow scripts to block merges and keep pipelines secure when validation fields drift.",
+      code: "# .github/workflows/api-drift.yml\n- name: Run Drift Check\n  run: |\n    polyglotspec diff consumer.json provider.json"
     }
   ];
 
@@ -183,12 +192,16 @@ export default function LandingPage({ onEnterConsole }) {
 
       {/* How it Works / CLI Flow */}
       <section id="how-it-works" className="section-container bg-dark-row">
-        <h2 className="section-title text-center">Local CLI Integration</h2>
+        <h2 className="section-title text-center">Step-by-Step Integration Guide</h2>
+        <p className="hero-subtitle text-center" style={{ margin: '0 auto 40px', maxWidth: '600px', fontSize: '1.05rem' }}>
+          Configure validations and automate contract testing rules directly inside your deployment flow.
+        </p>
         <div className="steps-grid">
           {steps.map((step, idx) => (
             <div key={idx} className="step-card glass-panel">
               <div className="step-num-badge">{step.num}</div>
               <h3 className="step-title">{step.title}</h3>
+              <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: '1.5', marginBottom: '16px' }}>{step.desc}</p>
               <pre className="step-code">
                 <code>{step.code}</code>
               </pre>
