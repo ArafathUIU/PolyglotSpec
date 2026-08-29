@@ -4,6 +4,23 @@ Statically detect API contract drift and validation mismatches across multi-lang
 
 ---
 
+## 🛰️ Visual Developer Console
+
+PolyglotSpec features a premium browser-native developer console with a visual contract diff analyzer, dynamic HTTP boundary fuzzer, and CI/CD configurator:
+
+![PolyglotSpec Landing Page Preview](docs/images/landing_page.png)
+
+### Launching the Dashboard Console
+The dashboard compiles and runs entirely on your local machine, keeping code, secrets, and fuzzer endpoints fully secure:
+```bash
+cd dashboard
+npm install
+npm run dev
+```
+Open **`http://localhost:5173`** to access the console, toggle quick presets, edit JSON specs, and trigger live HTTP boundary test suites.
+
+---
+
 ## The Problem
 
 Modern backend engineering is increasingly polyglot:companies build their user-facing application in one language (like PHP/Laravel or TypeScript/Express) while running machine learning or data pipelines in another (like Python/FastAPI).
