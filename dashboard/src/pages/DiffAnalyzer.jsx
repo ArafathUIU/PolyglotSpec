@@ -12,7 +12,8 @@ export default function DiffAnalyzer({
   providerSchema,
   setProviderSchema,
   diffResults,
-  setDiffResults
+  setDiffResults,
+  searchQuery = ""
 }) {
   const [errorMsg, setErrorMsg] = useState('');
   const [activePreset, setActivePreset] = useState('preset1');
@@ -408,6 +409,11 @@ export default function DiffAnalyzer({
     }
   };
 
+  const filteredDiffResults = diffResults.filter(r => 
+    r.field.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    r.message.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <div className="diff-analyzer-container">
       {/* Presets Toolbar */}
@@ -515,9 +521,9 @@ export default function DiffAnalyzer({
           </div>
         )}
 
-        {!errorMsg && diffResults.length > 0 && (
+        {!errorMsg && filteredDiffResults.length > 0 && (
           <div className="mismatches-list">
-            {diffResults.map((res, i) => {
+            {filteredDiffResults.map((res, i) => {
               const isExpanded = expandedFixIdx === i;
               return (
                 <div key={i} className={`mismatch-card ${res.severity} ${isExpanded ? 'ai-expanded' : ''}`}>

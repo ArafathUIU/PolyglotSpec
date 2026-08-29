@@ -11,6 +11,7 @@ import './App.css';
 export default function App() {
   const [view, setView] = useState('landing');
   const [activeTab, setActiveTab] = useState('overview');
+  const [searchQuery, setSearchQuery] = useState('');
   
   // Lifted Diff analyzer state
   const [consumerLang, setConsumerLang] = useState('laravel');
@@ -161,6 +162,7 @@ export default function App() {
             activeIssuesCount={activeIssuesCount}
             alertLevel={alertLevel}
             history={history}
+            searchQuery={searchQuery}
           />
         );
       case 'diff':
@@ -176,6 +178,7 @@ export default function App() {
             setProviderSchema={setProviderSchema}
             diffResults={diffResults}
             setDiffResults={setDiffResults}
+            searchQuery={searchQuery}
           />
         );
       case 'fuzz':
@@ -209,7 +212,12 @@ export default function App() {
         <header className="app-header glass-panel">
           <div className="header-search">
             <span className="search-icon">🔍</span>
-            <input type="text" placeholder="Search connected specs, APIs, issues..." />
+            <input 
+              type="text" 
+              placeholder="Search connected specs, APIs, issues..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
           </div>
           <div className="header-actions">
             <div className={`status-badge ${activeIssuesCount === 0 ? 'green' : 'red glow-active'}`}>

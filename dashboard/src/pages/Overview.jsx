@@ -7,10 +7,23 @@ export default function Overview({
   averageSyncScore = 94,
   activeIssuesCount = 2,
   alertLevel = "Drift Warning",
-  history = driftHistory
+  history = driftHistory,
+  searchQuery = ""
 }) {
   const getSeverityClass = (sev) => sev === 'breaking' ? 'red' : 'yellow';
   const getStatusClass = (status) => status === 'synced' ? 'green' : 'red';
+
+  const filteredServices = services.filter(s => 
+    s.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    s.framework.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    s.filePath.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const filteredHistory = history.filter(h => 
+    h.service.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    h.message.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    h.details.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <div className="overview-container">
@@ -44,7 +57,12 @@ export default function Overview({
         <section className="services-section">
           <h3 className="section-title">Connected Microservices</h3>
           <div className="services-list">
-            {services.map((service) => (
+            {filteredServices.length === 0 && (
+              <div className="timeline-item" style={{ padding: '20px', color: 'var(--text-muted)' }}>
+                No microservices match your search.
+              </div>
+            )}
+            {filteredServices.map((service) => (
               <div key={service.id} className="service-item">
                 <div className="service-header">
                   <div className="service-title-group">
@@ -85,7 +103,12 @@ export default function Overview({
         <section className="timeline-section">
           <h3 className="section-title">Contract Change History</h3>
           <div className="timeline-list">
-            {history.map((item) => (
+            {filteredHistory.length === 0 && (
+              <div className="timeline-item" style={{ padding: '20px', color: 'var(--text-muted)' }}>
+                No change records match your search.
+              </div>
+            )}
+            {filteredHistory.map((item) => (
               <div key={item.id} className="timeline-item">
                 <div className="timeline-badge-container">
                   <div className={`timeline-dot ${getSeverityClass(item.severity)}`}></div>
