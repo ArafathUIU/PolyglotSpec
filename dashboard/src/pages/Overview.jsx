@@ -2,7 +2,12 @@ import React from 'react';
 import { initialServices, driftHistory } from '../mockData';
 import './Overview.css';
 
-export default function Overview() {
+export default function Overview({
+  services = initialServices,
+  averageSyncScore = 94,
+  activeIssuesCount = 2,
+  alertLevel = "Drift Warning"
+}) {
   const getSeverityClass = (sev) => {
     return sev === 'breaking' ? 'red' : 'yellow';
   };
@@ -19,7 +24,9 @@ export default function Overview() {
           <span className="metric-icon">🛡️</span>
           <div className="metric-info">
             <span className="metric-label">Alert Level</span>
-            <span className="metric-value text-yellow">Drift Warning</span>
+            <span className={`metric-value ${alertLevel === 'Fully Synced' ? 'text-green' : (alertLevel === 'Drift Alert' ? 'text-red' : 'text-yellow')}`}>
+              {alertLevel}
+            </span>
           </div>
         </div>
 
@@ -35,7 +42,7 @@ export default function Overview() {
           <span className="metric-icon">🔄</span>
           <div className="metric-info">
             <span className="metric-label">Average Sync Score</span>
-            <span className="metric-value text-green">94%</span>
+            <span className={`metric-value ${averageSyncScore === 100 ? 'text-green' : 'text-yellow'}`}>{averageSyncScore}%</span>
           </div>
         </div>
 
@@ -43,7 +50,9 @@ export default function Overview() {
           <span className="metric-icon">🚨</span>
           <div className="metric-info">
             <span className="metric-label">Active Issues</span>
-            <span className="metric-value text-red">2 Drifts</span>
+            <span className={`metric-value ${activeIssuesCount === 0 ? 'text-green' : 'text-red'}`}>
+              {activeIssuesCount === 0 ? '0 Issues' : `${activeIssuesCount} Drifts`}
+            </span>
           </div>
         </div>
       </section>
@@ -54,7 +63,7 @@ export default function Overview() {
         <section className="services-section glass-panel">
           <h3 className="section-title">Connected Microservices</h3>
           <div className="services-list">
-            {initialServices.map((service) => (
+            {services.map((service) => (
               <div key={service.id} className="service-item">
                 <div className="service-header">
                   <div>

@@ -2,18 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { sampleSchemas } from '../mockData';
 import './DiffAnalyzer.css';
 
-export default function DiffAnalyzer({ setDriftCount }) {
-  const [consumerLang, setConsumerLang] = useState('laravel');
-  const [providerLang, setProviderLang] = useState('python');
-  
-  const [consumerSchema, setConsumerSchema] = useState(
-    JSON.stringify(sampleSchemas.laravel, null, 2)
-  );
-  const [providerSchema, setProviderSchema] = useState(
-    JSON.stringify(sampleSchemas.python, null, 2)
-  );
-
-  const [diffResults, setDiffResults] = useState([]);
+export default function DiffAnalyzer({
+  consumerLang,
+  setConsumerLang,
+  providerLang,
+  setProviderLang,
+  consumerSchema,
+  setConsumerSchema,
+  providerSchema,
+  setProviderSchema,
+  diffResults,
+  setDiffResults
+}) {
   const [errorMsg, setErrorMsg] = useState('');
 
   // Run visual diff rules
@@ -134,15 +134,9 @@ export default function DiffAnalyzer({ setDriftCount }) {
       }
 
       setDiffResults(mismatches);
-      if (setDriftCount) {
-        setDriftCount(mismatches.length);
-      }
     } catch (e) {
       setErrorMsg(`Parsing Error: ${e.message}`);
       setDiffResults([]);
-      if (setDriftCount) {
-        setDriftCount(0);
-      }
     }
   };
 
