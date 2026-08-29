@@ -59,6 +59,7 @@ class LaravelFormRequestParser:
             
             parts = rule.split(':', 1)
             name = parts[0].lower()
+            params = parts[1] if len(parts) > 1 else ""
             
             if name == 'required':
                 info["required"] = True
@@ -74,6 +75,19 @@ class LaravelFormRequestParser:
                 info["type"] = "boolean"
             elif name == 'array':
                 info["type"] = "array"
+            elif name == 'email':
+                info["format"] = "email"
+            elif name == 'max':
+                if params.isdigit():
+                    info["max"] = int(params)
+            elif name == 'min':
+                if params.isdigit():
+                    info["min"] = int(params)
+            elif name == 'between':
+                bounds = params.split(',')
+                if len(bounds) == 2 and bounds[0].isdigit() and bounds[1].isdigit():
+                    info["min"] = int(bounds[0])
+                    info["max"] = int(bounds[1])
                 
         return info
 
