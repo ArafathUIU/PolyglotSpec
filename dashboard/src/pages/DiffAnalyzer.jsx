@@ -15,6 +15,7 @@ export default function DiffAnalyzer({
   setDiffResults
 }) {
   const [errorMsg, setErrorMsg] = useState('');
+  const [activePreset, setActivePreset] = useState('preset1');
 
   // Run visual diff rules
   const runDiff = () => {
@@ -252,6 +253,7 @@ export default function DiffAnalyzer({
   ];
 
   const handleApplyPreset = (preset) => {
+    setActivePreset(preset.id);
     setConsumerLang(preset.consumerLang);
     setProviderLang(preset.providerLang);
     setConsumerSchema(JSON.stringify(preset.consumer, null, 2));
@@ -260,6 +262,7 @@ export default function DiffAnalyzer({
 
   // Load sample schema
   const handleLoadSample = (type, lang) => {
+    setActivePreset(null);
     if (type === 'consumer') {
       setConsumerLang(lang);
       setConsumerSchema(JSON.stringify(sampleSchemas[lang], null, 2));
@@ -278,7 +281,7 @@ export default function DiffAnalyzer({
           {presets.map((preset) => (
             <button
               key={preset.id}
-              className="btn-secondary btn-sm preset-btn"
+              className={`btn-secondary btn-sm preset-btn ${activePreset === preset.id ? 'active' : ''}`}
               onClick={() => handleApplyPreset(preset)}
             >
               {preset.name}
@@ -340,7 +343,10 @@ export default function DiffAnalyzer({
           <textarea 
             className="schema-textarea"
             value={consumerSchema}
-            onChange={(e) => setConsumerSchema(e.target.value)}
+            onChange={(e) => {
+              setConsumerSchema(e.target.value);
+              setActivePreset(null);
+            }}
           />
         </div>
 
@@ -352,7 +358,10 @@ export default function DiffAnalyzer({
           <textarea 
             className="schema-textarea"
             value={providerSchema}
-            onChange={(e) => setProviderSchema(e.target.value)}
+            onChange={(e) => {
+              setProviderSchema(e.target.value);
+              setActivePreset(null);
+            }}
           />
         </div>
       </div>
