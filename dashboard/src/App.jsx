@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Sidebar from './components/Sidebar';
 import Overview from './pages/Overview';
 import DiffAnalyzer from './pages/DiffAnalyzer';
+import FuzzSimulator from './pages/FuzzSimulator';
 import './App.css';
 
 export default function App() {
@@ -14,12 +15,7 @@ export default function App() {
       case 'diff':
         return <DiffAnalyzer />;
       case 'fuzz':
-        return (
-          <div className="page-stub">
-            <h2>Fuzz Simulator</h2>
-            <p>Real-time terminal outputs will run here.</p>
-          </div>
-        );
+        return <FuzzSimulator />;
       case 'cicd':
         return (
           <div className="page-stub">
