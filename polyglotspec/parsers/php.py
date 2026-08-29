@@ -36,10 +36,58 @@ class LaravelFormRequestParser:
             tokens.append(value)
         return tokens
 
+    def _parse_rule_list(self, val) -> dict:
+        if isinstance(val, str):
+            rules = val.split('|')
+        elif isinstance(val, list):
+            rules = val
+        else:
+            rules = []
+
+        info = {
+            "type": "any",
+            "required": False,
+            "nullable": False,
+        }
+        
+        for rule in rules:
+            if not isinstance(rule, str):
+                continue
+            rule = rule.strip()
+            if not rule:
+                continue
+            
+            parts = rule.split(':', 1)
+            name = parts[0].lower()
+            
+            if name == 'required':
+                info["required"] = True
+            elif name == 'nullable':
+                info["nullable"] = True
+            elif name == 'string':
+                info["type"] = "string"
+            elif name in ('integer', 'int'):
+                info["type"] = "integer"
+            elif name in ('numeric', 'double', 'float'):
+                info["type"] = "number"
+            elif name == 'boolean':
+                info["type"] = "boolean"
+            elif name == 'array':
+                info["type"] = "array"
+                
+        return info
+
     def parse(self, code: str) -> dict:
         """Parses PHP code string and returns extracted validation rules."""
         tokens = self.tokenize_php(code)
-        self.rules = {}
+        raw_rules = {}
+        
+        # Find class name
+        class_name = "FormRequest"
+        for idx in range(len(tokens) - 1):
+            if tokens[idx] == 'class':
+                class_name = tokens[idx+1]
+                break
         
         n = len(tokens)
         rules_idx = -1
@@ -162,11 +210,21 @@ class LaravelFormRequestParser:
                 if i < n and tokens[i] == '=>':
                     i += 1
                     val, next_i = parse_value_at(i)
-                    self.rules[key] = val
+                    raw_rules[key] = val
                     i = next_i
                 else:
                     i += 1
             else:
                 i += 1
                 
-        return self.rules
+        # Structure and process raw rules
+        structured_fields = {}
+        for key, val in raw_rules.items():
+            structured_fields[key] = self._parse_rule_list(val)
+            
+        return {
+            class_name: {
+                "fields": structured_fields,
+                "raw_class": class_name
+            }
+        }
