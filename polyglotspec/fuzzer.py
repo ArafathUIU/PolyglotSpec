@@ -123,7 +123,36 @@ class AdversarialFuzzer:
                     "payload": mutated
                 })
                 
+        # Append type mutations
+        payloads.extend(self._generate_type_mutations(baseline))
+                
         return payloads
+
+    def _generate_type_mutations(self, baseline: dict) -> list[dict]:
+        mutations = []
+        for field, prop in self.properties.items():
+            t = prop.get("type", "string")
+            if isinstance(t, list):
+                t = [x for x in t if x != "null"][0]
+            
+            incompatible_values = []
+            if t == "string":
+                incompatible_values = [123, True, [], {}]
+            elif t in ("integer", "number"):
+                incompatible_values = ["not-a-number", True, [], {}]
+            elif t == "boolean":
+                incompatible_values = ["not-a-bool", 123, [], {}]
+            elif t == "array":
+                incompatible_values = ["not-an-array", 123, True, {}]
+                
+            for val in incompatible_values:
+                mutated = baseline.copy()
+                mutated[field] = val
+                mutations.append({
+                    "scenario": f"Type mutation ({type(val).__name__} instead of {t}) in: {field}",
+                    "payload": mutated
+                })
+        return mutations
 
     def generate_semantic_payloads(self, slm_endpoint: str = None) -> list[dict]:
         """Generates semantic payloads using templates/heuristics or SLM call."""
