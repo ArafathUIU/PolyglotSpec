@@ -9,15 +9,24 @@ export default function CicdGuide() {
   const [failOnWarnings, setFailOnWarnings] = useState(false);
   const [copied, setCopied] = useState(false);
 
+  const sanitize = (val) => {
+    if (typeof val !== 'string') return '';
+    return val.replace(/[\r\n"';`\$&|]/g, '').trim();
+  };
+
   const getGithubYaml = () => {
     const warningFlag = failOnWarnings ? ' --fail-on-warnings' : '';
+    const cleanBranch = sanitize(branch);
+    const cleanConsumer = sanitize(consumerPath);
+    const cleanProvider = sanitize(providerPath);
+    
     return `name: API Contract Drift Check
 
 on:
   push:
-    branches: [ ${branch} ]
+    branches: [ ${cleanBranch} ]
   pull_request:
-    branches: [ ${branch} ]
+    branches: [ ${cleanBranch} ]
 
 jobs:
   contract-check:
@@ -39,12 +48,16 @@ jobs:
       - name: Detect Contract Drift
         run: |
           # Compare validation schemas against models
-          polyglotspec diff ${consumerPath} ${providerPath}${warningFlag}
+          polyglotspec diff ${cleanConsumer} ${cleanProvider}${warningFlag}
 `;
   };
 
   const getGitlabYaml = () => {
     const warningFlag = failOnWarnings ? ' --fail-on-warnings' : '';
+    const cleanBranch = sanitize(branch);
+    const cleanConsumer = sanitize(consumerPath);
+    const cleanProvider = sanitize(providerPath);
+
     return `stages:
   - test
 
@@ -55,9 +68,9 @@ contract-drift-check:
     - apt-get update && apt-get install -y git
     - pip install git+https://github.com/ArafathUIU/PolyglotSpec.git
   script:
-    - polyglotspec diff ${consumerPath} ${providerPath}${warningFlag}
+    - polyglotspec diff ${cleanConsumer} ${cleanProvider}${warningFlag}
   only:
-    - ${branch}
+    - ${cleanBranch}
     - merge_requests
 `;
   };

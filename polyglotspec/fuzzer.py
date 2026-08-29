@@ -266,6 +266,9 @@ class AdversarialFuzzer:
 
     def run_fuzz_test(self, target_url: str, payloads: list[dict]) -> list[dict]:
         """Runs the fuzz payloads against the target URL and returns execution results."""
+        if not target_url.lower().startswith(("http://", "https://")):
+            raise ValueError(f"Invalid target URL scheme. Only HTTP and HTTPS protocols are supported: {target_url}")
+            
         results = []
         for case in payloads:
             scenario = case["scenario"]

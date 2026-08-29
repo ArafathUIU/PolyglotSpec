@@ -192,6 +192,15 @@ export default function FuzzSimulator() {
 
   const runLiveFuzz = async () => {
     if (isRunning) return;
+    
+    if (!targetUrl.toLowerCase().startsWith('http://') && !targetUrl.toLowerCase().startsWith('https://')) {
+      setLogs([{
+        type: 'error',
+        text: `[ERROR] Invalid Target URL: "${targetUrl}". Only HTTP and HTTPS protocols are supported.`
+      }]);
+      return;
+    }
+
     setIsRunning(true);
     setProgress(0);
     setLogs([]);
