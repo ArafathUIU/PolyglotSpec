@@ -10,11 +10,39 @@ def main():
     """PolyglotSpec - Detect API contract drift across multi-language microservices."""
     pass
 
+import os
+import json
+
+def get_parser_for_file(filepath: str):
+    ext = os.path.splitext(filepath)[1].lower()
+    if ext == ".py":
+        from polyglotspec.parsers.python import PydanticParser
+        return PydanticParser()
+    elif ext == ".php":
+        from polyglotspec.parsers.php import LaravelFormRequestParser
+        return LaravelFormRequestParser()
+    elif ext in (".ts", ".tsx", ".js", ".jsx"):
+        from polyglotspec.parsers.typescript import ZodSchemaParser
+        return ZodSchemaParser()
+    else:
+        raise ValueError(f"Unsupported file extension: {ext}")
+
 @main.command()
 @click.argument('path', type=click.Path(exists=True))
 def check(path):
     """Statically parse and output schema validation rules from a source file."""
-    click.echo(f"Checking contract fields and rules in: {path}")
+    try:
+        parser = get_parser_for_file(path)
+        parsed = parser.parse_file(path)
+        
+        from polyglotspec.normalizer import CanonicalNormalizer
+        normalizer = CanonicalNormalizer()
+        schemas = normalizer.normalize(parsed)
+        
+        click.echo(json.dumps(schemas, indent=2))
+    except Exception as e:
+        click.echo(f"Error checking file: {e}", err=True)
+        raise click.Abort()
 
 @main.command()
 @click.argument('consumer', type=click.Path(exists=True))
