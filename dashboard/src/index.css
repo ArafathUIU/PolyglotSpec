@@ -39,6 +39,10 @@
   --accent-primary: var(--color-accent-primary);
   --accent-secondary: var(--color-accent-secondary);
   --accent-gradient: var(--color-accent-gradient);
+  --accent-green: var(--color-accent-success);
+  --accent-yellow: var(--color-accent-warning);
+  --accent-red: var(--color-accent-error);
+  --accent-cyan: var(--color-accent-primary);
 }
 
 * {

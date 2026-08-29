@@ -15,18 +15,17 @@
 .sidebar-brand {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   margin-bottom: 40px;
-  padding-left: 8px;
-  overflow: hidden;
+  padding-left: 4px;
 }
 
 .brand-logo {
-  font-size: 1.5rem;
+  font-size: 1.35rem;
 }
 
 .brand-name {
-  font-size: 1.02rem;
+  font-size: 0.94rem;
   font-family: 'Cinzel Decorative', serif;
   font-weight: 700;
   letter-spacing: 0.02em;
