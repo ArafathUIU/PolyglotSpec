@@ -214,5 +214,52 @@ class AdversarialFuzzer:
         return self._get_fallback_semantic_payloads()
 
     def _get_fallback_semantic_payloads(self) -> list[dict]:
-        # Stub for Commit 33
-        return []
+        payloads = []
+        baseline = self.get_baseline_payload()
+        
+        for field, prop in self.properties.items():
+            field_lower = field.lower()
+            t = prop.get("type", "string")
+            if isinstance(t, list):
+                t = [x for x in t if x != "null"][0]
+                
+            if t == "string":
+                if "email" in field_lower:
+                    for bad_email in ("not-an-email", "user@", "admin@.com"):
+                        mutated = baseline.copy()
+                        mutated[field] = bad_email
+                        payloads.append({
+                            "scenario": f"Semantic invalid email in: {field}",
+                            "payload": mutated
+                        })
+                elif "url" in field_lower or "link" in field_lower:
+                    for bad_url in ("invalid-url", "http://", "ftp://missing-tld"):
+                        mutated = baseline.copy()
+                        mutated[field] = bad_url
+                        payloads.append({
+                            "scenario": f"Semantic invalid URL in: {field}",
+                            "payload": mutated
+                        })
+                elif "phone" in field_lower:
+                    mutated = baseline.copy()
+                    mutated[field] = "not-a-number-phone"
+                    payloads.append({
+                        "scenario": f"Semantic invalid phone in: {field}",
+                        "payload": mutated
+                    })
+                elif "date" in field_lower:
+                    mutated = baseline.copy()
+                    mutated[field] = "2025-13-45"
+                    payloads.append({
+                        "scenario": f"Semantic invalid date format in: {field}",
+                        "payload": mutated
+                    })
+            elif t in ("integer", "number"):
+                if any(x in field_lower for x in ("price", "amount", "cost", "quantity", "stock")):
+                    mutated = baseline.copy()
+                    mutated[field] = -100
+                    payloads.append({
+                        "scenario": f"Semantic negative amount in numeric field: {field}",
+                        "payload": mutated
+                    })
+        return payloads
