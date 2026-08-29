@@ -154,7 +154,65 @@ class AdversarialFuzzer:
                 })
         return mutations
 
-    def generate_semantic_payloads(self, slm_endpoint: str = None) -> list[dict]:
+    def generate_semantic_payloads(self, slm_endpoint: str = None, api_key: str = None, model: str = "llama3") -> list[dict]:
         """Generates semantic payloads using templates/heuristics or SLM call."""
-        # Stub for Commit 29
+        import os
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        prompt_path = os.path.join(base_dir, "prompts", "fuzzer_slm.txt")
+        
+        if not os.path.exists(prompt_path):
+            prompt_path = os.path.join(os.getcwd(), "prompts", "fuzzer_slm.txt")
+            
+        if os.path.exists(prompt_path):
+            with open(prompt_path, "r", encoding="utf-8") as f:
+                prompt_template = f.read()
+        else:
+            prompt_template = "System: Generate fuzz JSON array for schema: {schema_content}"
+            
+        formatted_prompt = prompt_template.format(schema_content=json.dumps(self.schema, indent=2))
+        
+        if not slm_endpoint:
+            return self._get_fallback_semantic_payloads()
+            
+        try:
+            headers = {"Content-Type": "application/json"}
+            if api_key:
+                headers["Authorization"] = f"Bearer {api_key}"
+                
+            payload = {
+                "model": model,
+                "prompt": formatted_prompt,
+                "stream": False
+            }
+            if "v1/chat/completions" in slm_endpoint:
+                payload = {
+                    "model": model,
+                    "messages": [
+                        {"role": "system", "content": "You are a software fuzzer."},
+                        {"role": "user", "content": formatted_prompt}
+                    ]
+                }
+                
+            response = requests.post(slm_endpoint, json=payload, headers=headers, timeout=30)
+            if response.status_code == 200:
+                res_data = response.json()
+                text = ""
+                if "response" in res_data:
+                    text = res_data["response"]
+                elif "choices" in res_data:
+                    text = res_data["choices"][0]["message"]["content"]
+                
+                start_idx = text.find("[")
+                end_idx = text.rfind("]")
+                if start_idx != -1 and end_idx != -1:
+                    json_str = text[start_idx:end_idx+1]
+                    cases = json.loads(json_str)
+                    return cases
+        except Exception:
+            pass
+            
+        return self._get_fallback_semantic_payloads()
+
+    def _get_fallback_semantic_payloads(self) -> list[dict]:
+        # Stub for Commit 33
         return []
