@@ -8,13 +8,14 @@ import './App.css';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('overview');
+  const [driftCount, setDriftCount] = useState(2);
 
   const renderContent = () => {
     switch (activeTab) {
       case 'overview':
         return <Overview />;
       case 'diff':
-        return <DiffAnalyzer />;
+        return <DiffAnalyzer setDriftCount={setDriftCount} />;
       case 'fuzz':
         return <FuzzSimulator />;
       case 'cicd':
@@ -41,8 +42,8 @@ export default function App() {
             <input type="text" placeholder="Search connected specs, APIs, issues..." />
           </div>
           <div className="header-actions">
-            <div className="status-badge red glow-active">
-              <span>⚠️ 2 Contract Drifts</span>
+            <div className={`status-badge ${driftCount === 0 ? 'green' : 'red glow-active'}`}>
+              <span>{driftCount === 0 ? '✔ Fully Synced' : `⚠️ ${driftCount} Contract Drifts`}</span>
             </div>
             <div className="user-profile">
               <span className="avatar">👤</span>

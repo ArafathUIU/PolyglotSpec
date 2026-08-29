@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { sampleSchemas } from '../mockData';
 import './DiffAnalyzer.css';
 
-export default function DiffAnalyzer() {
+export default function DiffAnalyzer({ setDriftCount }) {
   const [consumerLang, setConsumerLang] = useState('laravel');
   const [providerLang, setProviderLang] = useState('python');
   
@@ -134,9 +134,15 @@ export default function DiffAnalyzer() {
       }
 
       setDiffResults(mismatches);
+      if (setDriftCount) {
+        setDriftCount(mismatches.length);
+      }
     } catch (e) {
       setErrorMsg(`Parsing Error: ${e.message}`);
       setDiffResults([]);
+      if (setDriftCount) {
+        setDriftCount(0);
+      }
     }
   };
 
