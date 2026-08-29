@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Sidebar from './components/Sidebar';
 import Overview from './pages/Overview';
+import DiffAnalyzer from './pages/DiffAnalyzer';
 import './App.css';
 
 export default function App() {
@@ -11,12 +12,7 @@ export default function App() {
       case 'overview':
         return <Overview />;
       case 'diff':
-        return (
-          <div className="page-stub">
-            <h2>Diff Analyzer</h2>
-            <p>Interactive schema diff comparisons will load here.</p>
-          </div>
-        );
+        return <DiffAnalyzer />;
       case 'fuzz':
         return (
           <div className="page-stub">
