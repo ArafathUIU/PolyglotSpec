@@ -2,6 +2,18 @@ import React from 'react';
 import './LandingPage.css';
 
 export default function LandingPage({ onEnterConsole }) {
+  const [mousePos, setMousePos] = React.useState({ x: -1000, y: -1000 });
+
+  React.useEffect(() => {
+    const handleMouseMove = (e) => {
+      setMousePos({ x: e.clientX, y: e.clientY });
+    };
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+    };
+  }, []);
+
   const features = [
     {
       icon: "🛰️",
@@ -45,6 +57,14 @@ export default function LandingPage({ onEnterConsole }) {
 
   return (
     <div className="landing-container">
+      {/* Interactive mouse cursor glow */}
+      <div 
+        className="cursor-glow" 
+        style={{ 
+          left: `${mousePos.x}px`, 
+          top: `${mousePos.y}px` 
+        }}
+      />
       {/* Background glow layers */}
       <div className="bg-glow-container">
         <div className="bg-glow-1"></div>

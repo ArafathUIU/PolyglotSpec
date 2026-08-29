@@ -35,6 +35,10 @@
 
   --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
   --transition-normal: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  --accent-primary: var(--color-accent-primary);
+  --accent-secondary: var(--color-accent-secondary);
+  --accent-gradient: var(--color-accent-gradient);
 }
 
 * {
@@ -62,15 +66,32 @@ body::before {
   height: 100vh;
   z-index: -2;
   background-image: 
-    linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
-  background-image: 
-    linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px),
-    url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAICkigMBAAAAZA8V5B1AAAAASUVORK5CYII=");
-  background-size: 50px 50px, 50px 50px, 120px 120px;
-  background-blend-mode: screen, screen, overlay;
+    linear-gradient(rgba(236, 208, 120, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(236, 208, 120, 0.03) 1px, transparent 1px);
+  background-size: 45px 45px;
   pointer-events: none;
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  z-index: -3;
+  background: 
+    radial-gradient(ellipse at center, transparent 35%, rgba(236, 208, 120, 0.02) 70%),
+    radial-gradient(circle at 25% 25%, rgba(236, 208, 120, 0.05) 0%, transparent 45%),
+    radial-gradient(circle at 75% 75%, rgba(139, 90, 43, 0.04) 0%, transparent 45%);
+  animation: threads-rotate 50s linear infinite;
+  transform-origin: center center;
+  pointer-events: none;
+}
+
+@keyframes threads-rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 h1, h2, h3, h4, h5, h6 {

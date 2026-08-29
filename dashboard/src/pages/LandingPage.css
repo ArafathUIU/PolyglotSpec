@@ -266,3 +266,17 @@
     text-align: center;
   }
 }
+
+/* Interactive mouse tracking cursor glow */
+.cursor-glow {
+  position: fixed;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(236, 208, 120, 0.08) 0%, rgba(236, 208, 120, 0.02) 50%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+  mix-blend-mode: screen;
+  transition: width 0.2s, height 0.2s;
+}
