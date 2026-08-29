@@ -4,10 +4,12 @@ import Overview from './pages/Overview';
 import DiffAnalyzer from './pages/DiffAnalyzer';
 import FuzzSimulator from './pages/FuzzSimulator';
 import CicdGuide from './pages/CicdGuide';
+import LandingPage from './pages/LandingPage';
 import { sampleSchemas } from './mockData';
 import './App.css';
 
 export default function App() {
+  const [view, setView] = useState('landing');
   const [activeTab, setActiveTab] = useState('overview');
   
   // Lifted Diff analyzer state
@@ -185,6 +187,10 @@ export default function App() {
     }
   };
 
+  if (view === 'landing') {
+    return <LandingPage onEnterConsole={() => setView('dashboard')} />;
+  }
+
   return (
     <div className="app-container">
       {/* Background glow layers */}
@@ -193,7 +199,11 @@ export default function App() {
         <div className="bg-glow-2"></div>
       </div>
 
-      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+      <Sidebar 
+        activeTab={activeTab} 
+        setActiveTab={setActiveTab} 
+        onExitConsole={() => setView('landing')} 
+      />
       
       <main className="main-content">
         <header className="app-header glass-panel">
