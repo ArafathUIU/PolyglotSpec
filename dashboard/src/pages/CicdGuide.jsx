@@ -4,6 +4,8 @@ import './CicdGuide.css';
 export default function CicdGuide() {
   const [platform, setPlatform] = useState('github');
   const [branch, setBranch] = useState('main');
+  const [consumerPath, setConsumerPath] = useState('app/Http/Requests/StoreUserRequest.php');
+  const [providerPath, setProviderPath] = useState('app/models/user.py');
   const [failOnWarnings, setFailOnWarnings] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -36,8 +38,8 @@ jobs:
 
       - name: Detect Contract Drift
         run: |
-          # Compare Laravel rules rules schema file against FastAPI Pydantic models
-          polyglotspec diff app/Http/Requests/StoreUserRequest.php app/models/user.py${warningFlag}
+          # Compare validation schemas against models
+          polyglotspec diff ${consumerPath} ${providerPath}${warningFlag}
 `;
   };
 
@@ -53,7 +55,7 @@ contract-drift-check:
     - apt-get update && apt-get install -y git
     - pip install git+https://github.com/ArafathUIU/PolyglotSpec.git
   script:
-    - polyglotspec diff app/Http/Requests/StoreUserRequest.php app/models/user.py${warningFlag}
+    - polyglotspec diff ${consumerPath} ${providerPath}${warningFlag}
   only:
     - ${branch}
     - merge_requests
@@ -99,6 +101,26 @@ contract-drift-check:
               className="config-input" 
               value={branch}
               onChange={(e) => setBranch(e.target.value)}
+            />
+          </div>
+
+          <div className="config-field">
+            <label className="field-label">Consumer Path:</label>
+            <input 
+              type="text" 
+              className="config-input" 
+              value={consumerPath}
+              onChange={(e) => setConsumerPath(e.target.value)}
+            />
+          </div>
+
+          <div className="config-field">
+            <label className="field-label">Provider Path:</label>
+            <input 
+              type="text" 
+              className="config-input" 
+              value={providerPath}
+              onChange={(e) => setProviderPath(e.target.value)}
             />
           </div>
 
