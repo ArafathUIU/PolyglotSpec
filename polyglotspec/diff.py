@@ -15,6 +15,26 @@ class SchemaDiffEngine:
     def __init__(self):
         pass
 
+    def _is_type_compatible(self, c_type, p_type) -> bool:
+        c_list = c_type if isinstance(c_type, list) else [c_type]
+        p_list = p_type if isinstance(p_type, list) else [p_type]
+        
+        for t_c in c_list:
+            compatible = False
+            for t_p in p_list:
+                if t_c == t_p:
+                    compatible = True
+                    break
+                if t_c == "integer" and t_p == "number":
+                    compatible = True
+                    break
+                if t_c == "any" or t_p == "any":
+                    compatible = True
+                    break
+            if not compatible:
+                return False
+        return True
+
     def diff(self, consumer: dict, provider: dict) -> list[Mismatch]:
         """Compares two JSON Schemas and returns a list of mismatches."""
         mismatches = []
@@ -25,7 +45,6 @@ class SchemaDiffEngine:
         provider_required = provider.get("required", [])
         
         # Check required fields
-        # If provider requires a field that consumer does not send or mark as required, it is breaking
         for field in provider_required:
             if field not in consumer_props:
                 mismatches.append(Mismatch(
@@ -40,4 +59,27 @@ class SchemaDiffEngine:
                     severity="breaking"
                 ))
                 
+        # Check type compatibility
+        for field, c_info in consumer_props.items():
+            if field in provider_props:
+                p_info = provider_props[field]
+                c_type = c_info.get("type", "any")
+                p_type = p_info.get("type", "any")
+                
+                if not self._is_type_compatible(c_type, p_type):
+                    mismatches.append(Mismatch(
+                        field_path=field,
+                        message=f"Type mismatch: Consumer sends '{c_type}', but Provider expects '{p_type}'.",
+                        severity="breaking"
+                    ))
+                elif c_type == "array" and p_type == "array":
+                    c_item = c_info.get("items", {}).get("type", "any")
+                    p_item = p_info.get("items", {}).get("type", "any")
+                    if not self._is_type_compatible(c_item, p_item):
+                        mismatches.append(Mismatch(
+                            field_path=f"{field}[]",
+                            message=f"Array item type mismatch: Consumer sends array of '{c_item}', but Provider expects '{p_item}'.",
+                            severity="breaking"
+                        ))
+                        
         return mismatches
