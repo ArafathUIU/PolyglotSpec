@@ -26,23 +26,23 @@
 
 .brand-name {
   font-size: 0.94rem;
-  font-family: 'Cinzel Decorative', serif;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  background: linear-gradient(135deg, #fce0ad 0%, #ecd078 50%, #b8860b 100%);
+  font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  background: linear-gradient(135deg, #ffffff 0%, #e2e8f0 60%, #cbd5e1 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  filter: drop-shadow(0 0 5px rgba(236, 208, 120, 0.3));
+  filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.3));
   animation: logo-glow 3s infinite ease-in-out;
 }
 
 @keyframes logo-glow {
   0%, 100% {
-    filter: drop-shadow(0 0 4px rgba(236, 208, 120, 0.25));
+    filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.25));
   }
   50% {
-    filter: drop-shadow(0 0 12px rgba(236, 208, 120, 0.65));
+    filter: drop-shadow(0 0 12px rgba(255, 255, 255, 0.5));
   }
 }
 
@@ -72,15 +72,16 @@
 }
 
 .nav-item:hover {
-  background: rgba(255, 255, 255, 0.03);
-  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.05);
+  color: #ffffff;
   padding-left: 20px;
 }
 
 .nav-item.active {
-  background: var(--color-accent-gradient);
-  color: #0d0f13;
-  box-shadow: 0 4px 20px rgba(236, 208, 120, 0.3);
+  background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
+  color: #0f172a;
+  box-shadow: 0 4px 18px rgba(255, 255, 255, 0.25);
+  font-weight: 700;
 }
 
 .nav-icon {
